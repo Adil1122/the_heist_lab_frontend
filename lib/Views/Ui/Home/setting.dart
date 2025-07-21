@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:new_ui/Constants/app_constants.dart';
@@ -12,8 +14,26 @@ import 'package:new_ui/Views/Common/startbuttton.dart';
 import 'package:new_ui/Views/Common/width_spacer.dart';
 import 'package:new_ui/Views/Ui/auth/login_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatelessWidget {
+
+  void logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    //await prefs.clear(); // or 
+    prefs.remove('auth_token');
+
+    // Redirect to Login screen and remove Home from back stack
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LoginPage(),
+      ),
+    );
+
+  }
+
+
   const SettingsScreen({
     super.key,
     this.successfulTintAlerts,
@@ -100,12 +120,13 @@ class SettingsScreen extends StatelessWidget {
                     child: Center(
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.push(
+                          logout(context);
+                          /*Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => LoginPage(),
                             ),
-                          );
+                          );*/
                         },
                         child: ReusableText(
                           text: "Sign Out",

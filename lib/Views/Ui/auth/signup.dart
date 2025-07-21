@@ -8,8 +8,12 @@ import 'package:new_ui/Views/Common/height_spacer.dart';
 import 'package:new_ui/Views/Common/reusable_text.dart';
 import 'package:new_ui/Views/Common/textfiled.dart';
 import 'package:new_ui/Views/Common/width_spacer.dart';
+import 'package:new_ui/Views/Ui/Home/home_page.dart';
+import 'package:new_ui/Views/Ui/auth/activateOtpScreen.dart';
 import 'package:new_ui/Views/Ui/auth/login_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../Services/auth_service.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -21,7 +25,30 @@ class Signup extends StatefulWidget {
 class _SignupState extends State<Signup> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController passwordConfirmationController = TextEditingController();
   final TextEditingController namecontroller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    checkLoginStatus();
+  }
+
+  Future<void> checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    print('token: $token');
+
+    if (token != null && token.isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+        ),
+      );
+    }
+
+  }
 
   @override
   void dispose() {
@@ -195,7 +222,7 @@ class _SignupState extends State<Signup> {
                                 ],
                               ),
                               CustomTextField(
-                                controller: passwordController,
+                                controller: passwordConfirmationController,
                                 keyboard: TextInputType.text,
                                 obsecuretext: signupprovider.obsecureText,
                                 hinttext: "Password",
@@ -221,7 +248,34 @@ class _SignupState extends State<Signup> {
                                 ),
                               ),
                               HeightSpacer(size: 10.h),
-                              CustomButton(text: "Sign up"),
+                              CustomButton(
+                                text: "Sign up",
+
+                                onTap: () async {
+                                  String name = namecontroller.text;
+                                  String email = emailController.text;
+                                  String password = passwordController.text;
+                                  String password_confirmation = passwordConfirmationController.text;
+
+                                  bool isSuccess = await AuthService.registerUser(name, email, password, password_confirmation);
+                                  if (isSuccess) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ActivateOtpScreen(),
+                                      ),
+                                    );
+                                    /*ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Register success')),
+                                    );*/
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Register failed')),
+                                    );
+                                  }
+                                }
+
+                              ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [

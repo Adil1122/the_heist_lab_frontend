@@ -39,7 +39,7 @@ class ControllerWidget extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     final double collapsedHeight =
-        isPortrait ? screenHeight / 12 : screenHeight / 3;
+        isPortrait ? screenHeight / 13 : screenHeight / 3;
     final double expandedHeight =
         isPortrait ? screenHeight / 5 : screenHeight / 2;
 

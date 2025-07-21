@@ -1,48 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:new_ui/Constants/app_constants.dart';
-import 'package:new_ui/Services/auth_service.dart';
 import 'package:new_ui/Views/Common/app_style.dart';
 import 'package:new_ui/Views/Common/custom_btn.dart';
 import 'package:new_ui/Views/Common/height_spacer.dart';
 import 'package:new_ui/Views/Common/reusable_text.dart';
 import 'package:new_ui/Views/Common/textfiled.dart';
 import 'package:new_ui/Views/Common/width_spacer.dart';
-import 'package:new_ui/Views/Ui/Home/home_page.dart';
-import 'package:new_ui/Views/Ui/auth/otpScreen.dart';
+import 'package:new_ui/Views/Ui/auth/forgotScreen.dart';
 import 'package:new_ui/Views/Ui/auth/signup.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class forgot_Screen extends StatefulWidget {
-  const forgot_Screen({super.key});
+class ActivateOtpScreen extends StatefulWidget {
+  const ActivateOtpScreen({super.key});
 
   @override
-  State<forgot_Screen> createState() => _forgot_ScreenState();
+  State<ActivateOtpScreen> createState() => _ActivateOtpScreenState();
 }
 
-class _forgot_ScreenState extends State<forgot_Screen> {
+class _ActivateOtpScreenState extends State<ActivateOtpScreen> {
   final TextEditingController emailController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    checkLoginStatus();
-  }
-
-  Future<void> checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    print('token: $token');
-
-    if (token != null && token.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
-    } 
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,12 +55,12 @@ class _forgot_ScreenState extends State<forgot_Screen> {
                 Center(child: Image.asset("assets/Group.png")),
                 HeightSpacer(size: 20.h),
                 ReusableText(
-                  text: "Recover Password",
+                  text: "Activate OTP Screen",
                   style: appstyle(16, kLight, FontWeight.bold),
                 ),
                 HeightSpacer(size: 5.h),
                 ReusableText(
-                  text: "Enter email to cover your account",
+                  text: "Enter OTP to activate your account",
                   style: appstyle(12.h, kDarkGrey, FontWeight.normal),
                 ),
                 HeightSpacer(size: 20.h),
@@ -93,14 +69,14 @@ class _forgot_ScreenState extends State<forgot_Screen> {
                   children: [
                     WidthSpacer(width: 7.h),
                     ReusableText(
-                      text: "Email",
+                      text: "OTP",
                       style: appstyle(12.h, kDarkGrey, FontWeight.normal),
                     ),
                   ],
                 ),
                 CustomTextField(
                   controller: emailController,
-                  hinttext: "You@example.com",
+                  hinttext: "Enter OTP to activate",
                   validator: (email) {
                     if (email!.isEmpty || !email.contains("@")) {
                       return "Enter a valid email";
@@ -110,58 +86,28 @@ class _forgot_ScreenState extends State<forgot_Screen> {
                   keyboard: TextInputType.emailAddress,
                 ),
 
-                CustomButton(
-                  text: "Send recovery email",
-                  
-                  /*onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => OtpScreen()),
-                        );
-                      }*/
-
-                  onTap: () async {
-                    String email = emailController.text;
-
-                    bool isSuccess = await AuthService.sendForgotOtpEmail(email);
-                    if (isSuccess) {
-
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OtpScreen(),
-                        ),
-                      );
-
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('OTP failed to be sent')),
-                      );
-                    }
-                  }    
-                ),
-
-                Row(
+                CustomButton(text: "Enter OTP"),
+                /*Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ReusableText(
-                      text: "Enter email to re-cover your account. ",
+                      text: "Go Back to Forgot Password. ",
                       style: appstyle(11.h, kDarkGrey, FontWeight.w500),
                     ),
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Signup()),
+                          MaterialPageRoute(builder: (context) => forgot_Screen()),
                         );
                       },
                       child: ReusableText(
-                        text: "Sign up",
+                        text: "ForgotPassword",
                         style: appstyle(11.h, kOrange, FontWeight.w500),
                       ),
                     ),
                   ],
-                ),
+                ),*/
               ],
             ),
           ),
