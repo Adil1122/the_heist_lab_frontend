@@ -186,6 +186,67 @@ class AuthService {
       return 3;
     }
 
-    return 0;
+    return 3;
+  }
+
+  static verifyForgotOtp(otp) async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved_otp = prefs.getString('otp');
+    final otp_time = prefs.getString('otp_time');
+    final otp_email = prefs.getString('otp_email');
+    print('OTP details: ${otp} ${saved_otp} ${otp_email} ${otp_time}');
+    if (otp == saved_otp) {
+      num current_time = DateTime.now().millisecondsSinceEpoch;
+      final five_minutes = 5 * 60 * 1000;
+      if (otp_time != null) {
+        num? otpTimeInt = num.tryParse(otp_time);
+
+        if (otpTimeInt != null && current_time - otpTimeInt > five_minutes) {
+          return 0;
+        } else {
+          return 1;
+        }
+      } else {
+        return 2;
+      }
+    } else {
+      return 3;
+    }
+  }
+
+  static resetPassword(old_password, password, password_confirmation) async {
+    final prefs = await SharedPreferences.getInstance();
+    final otp_email = prefs.getString('otp_email');
+    print('OTP email: ${otp_email}');
+
+    final url = Uri.parse('$baseUrl/auth/reset-password');
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "email": otp_email,
+        "old_password": old_password,
+        "new_password": password,
+        "password_confirmation": password_confirmation,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+    int status_code = data['status_code'];
+
+    if (status_code == 200) {
+      print('Password successfully reset: $data');
+      return 1;
+    } else if (status_code == 500) {
+      print('Invalid old password');
+      return 0;
+    } else if (status_code == 501) {
+      print('Password confirmation missmatched');
+      return 2;
+    } else if (status_code == 502) {
+      print('User not found');
+      return 3;
+    }
   }
 }
