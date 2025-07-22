@@ -25,7 +25,8 @@ class Signup extends StatefulWidget {
 class _SignupState extends State<Signup> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController passwordConfirmationController = TextEditingController();
+  final TextEditingController passwordConfirmationController =
+      TextEditingController();
   final TextEditingController namecontroller = TextEditingController();
 
   @override
@@ -42,12 +43,9 @@ class _SignupState extends State<Signup> {
     if (token != null && token.isNotEmpty) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
+        MaterialPageRoute(builder: (context) => HomePage()),
       );
     }
-
   }
 
   @override
@@ -255,26 +253,68 @@ class _SignupState extends State<Signup> {
                                   String name = namecontroller.text;
                                   String email = emailController.text;
                                   String password = passwordController.text;
-                                  String password_confirmation = passwordConfirmationController.text;
+                                  String password_confirmation =
+                                      passwordConfirmationController.text;
 
-                                  bool isSuccess = await AuthService.registerUser(name, email, password, password_confirmation);
-                                  if (isSuccess) {
+                                  int resp = await AuthService.registerUser(
+                                    name,
+                                    email,
+                                    password,
+                                    password_confirmation,
+                                  );
+                                  if (resp == 1) {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ActivateOtpScreen(),
+                                        builder:
+                                            (context) => ActivateOtpScreen(),
                                       ),
                                     );
                                     /*ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text('Register success')),
                                     );*/
-                                  } else {
+                                  } else if (resp == 0) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Register failed')),
+                                      SnackBar(
+                                        content: Text(
+                                          'Register failed: Name, Email or Password cannot be empty.',
+                                        ),
+                                      ),
+                                    );
+                                  } else if (resp == 2) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Register failed: Password Confirmation Missmatched.',
+                                        ),
+                                      ),
+                                    );
+                                  } else if (resp == 3) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Register failed: Invalid Email.',
+                                        ),
+                                      ),
+                                    );
+                                  } else if (resp == 4) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Register failed: Password Must be 5 Characters long.',
+                                        ),
+                                      ),
+                                    );
+                                  } else if (resp == 5) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Register failed: A database error happened.',
+                                        ),
+                                      ),
                                     );
                                   }
-                                }
-
+                                },
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,

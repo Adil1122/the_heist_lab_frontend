@@ -41,11 +41,9 @@ class _LoginPageState extends State<LoginPage> {
     if (token != null && token.isNotEmpty) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
+        MaterialPageRoute(builder: (context) => HomePage()),
       );
-    } 
+    }
   }
 
   @override
@@ -225,32 +223,59 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   );
                                 },*/
-
-
-
                                 onTap: () async {
                                   String email = emailController.text;
                                   String password = passwordController.text;
 
-                                  bool isSuccess = await AuthService.loginUser(email, password);
-                                  if (isSuccess) {
-                                    
+                                  //SnackBar(content: Text('Login started'));
+
+                                  //if (email != '' && password != '') {
+                                  int resp = await AuthService.loginUser(
+                                    email,
+                                    password,
+                                  );
+                                  if (resp == 1) {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => HomePage(),
                                       ),
                                     );
-                                    
-                                  } else {
+                                  } else if (resp == 0) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Login failed')),
+                                      SnackBar(
+                                        content: Text(
+                                          'Login failed: Email or password cannot be empty.',
+                                        ),
+                                      ),
+                                    );
+                                  } else if (resp == 2) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Login failed: Email or password mismatched.',
+                                        ),
+                                      ),
+                                    );
+                                  } else if (resp == 3) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Login failed: Invalid Email.',
+                                        ),
+                                      ),
+                                    );
+                                  } else if (resp == 4) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Login failed: Password Must be 5 Characters long.',
+                                        ),
+                                      ),
                                     );
                                   }
-                                }
-
-
-
+                                  //}
+                                },
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,

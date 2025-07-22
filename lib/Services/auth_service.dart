@@ -4,10 +4,26 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const String baseUrl = 'https://theheistlabbackend-production.up.railway.app';
+  static const String baseUrl =
+      'https://theheistlabbackend-production.up.railway.app';
 
-  static Future<bool> loginUser(String email, String password) async {
+  static Future<int> loginUser(String email, String password) async {
     final url = Uri.parse('$baseUrl/auth/login');
+
+    if (email == '' || password == '') {
+      print('Login failed: Email or Password cannot be empty');
+      return 0;
+    }
+
+    if (!email.contains("@")) {
+      print('Login failed: Invalid Email');
+      return 3;
+    }
+
+    if (password.length < 5) {
+      print('Login failed: Password Must be 5 Characters long.');
+      return 4;
+    }
 
     final response = await http.post(
       url,
@@ -17,26 +33,55 @@ class AuthService {
 
     final data = jsonDecode(response.body);
     int status_code = data['status_code'];
-    String token = data['token'];
 
     if (status_code == 200) {
+      String token = data['token'];
       saveUserSession(token);
       print('Login successful: $data');
-      return true;
+      return 1;
     } else {
       print('Login failed: ${response.body}');
-      return false;
+      return 2;
     }
-
   }
 
-  static Future<bool> registerUser(String name, String email, String password, String passwordConfirmation) async {
+  static Future<int> registerUser(
+    String name,
+    String email,
+    String password,
+    String passwordConfirmation,
+  ) async {
     final url = Uri.parse('$baseUrl/auth/register');
+
+    if (name == '' || email == '' || password == '') {
+      print('Register failed: Name, Email or Password cannot be empty');
+      return 0;
+    }
+
+    if (password != passwordConfirmation) {
+      print('Register failed: Password Confirmation Missmatched.');
+      return 2;
+    }
+
+    if (!email.contains("@")) {
+      print('Register failed: Invalid Email');
+      return 3;
+    }
+
+    if (password.length < 5) {
+      print('Register failed: Password Must be 5 Characters long.');
+      return 4;
+    }
 
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"name": name, "email": email, "password": password, "password_confirmation": passwordConfirmation}),
+      body: jsonEncode({
+        "name": name,
+        "email": email,
+        "password": password,
+        "password_confirmation": passwordConfirmation,
+      }),
     );
 
     final data = jsonDecode(response.body);
@@ -46,12 +91,11 @@ class AuthService {
       int otp = data['registered_user_details']['otp'];
       saveOTPData(otp.toString(), email);
       print('Register successful: $data');
-      return true;
+      return 1;
     } else {
       print('Register failed: ${response.body}');
-      return false;
+      return 5;
     }
-
   }
 
   static saveUserSession(String token) async {
@@ -63,17 +107,18 @@ class AuthService {
   static saveOTPData(String otp, String email) async {
     final prefs = await SharedPreferences.getInstance();
     final old_otp = prefs.getString('otp');
-    if(old_otp != null && old_otp.isNotEmpty) {
+    if (old_otp != null && old_otp.isNotEmpty) {
       prefs.remove('otp');
-      prefs.remove('email');
+      prefs.remove('otp_email');
       prefs.remove('otp_time');
     }
     await prefs.setString('otp', otp);
-    await prefs.setString('email', email);
-    await prefs.setString('otp_time', DateTime.now().millisecondsSinceEpoch.toString());
+    await prefs.setString('otp_email', email);
+    await prefs.setString(
+      'otp_time',
+      DateTime.now().millisecondsSinceEpoch.toString(),
+    );
   }
-
-
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
@@ -103,11 +148,44 @@ class AuthService {
       print('OTP failed to be sent: ${response.body}');
       return false;
     }
-
   }
 
-  static activateUser() {
+  static activateUser(otp) async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved_otp = prefs.getString('otp');
+    final otp_time = prefs.getString('otp_time');
+    final otp_email = prefs.getString('otp_email');
+    print('OTP details: ${otp} ${saved_otp} ${otp_email} ${otp_time}');
+    final url = Uri.parse('$baseUrl/auth/activate-user');
 
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "email": otp_email,
+        "otp": otp,
+        "saved_otp": saved_otp,
+        "otp_time": otp_time,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+    int status_code = data['status_code'];
+
+    if (status_code == 200) {
+      print('OTP matched: $data');
+      return 1;
+    } else if (status_code == 500) {
+      print('OTP expired');
+      return 0;
+    } else if (status_code == 501) {
+      print('User not found');
+      return 2;
+    } else if (status_code == 502) {
+      print('OTP Mismatched');
+      return 3;
+    }
+
+    return 0;
   }
-
 }
